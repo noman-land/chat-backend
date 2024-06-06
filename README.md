@@ -20,3 +20,23 @@ interface Message {
   message: string;
 }
 ```
+
+## Running locally
+
+`npm start`
+
+Example local url: http://localhost:8787/chat/v1/rooms/123
+
+## Deploying
+
+### Automatic deploy
+
+This service auto deploys to Cloudflare on merge to `master`. It uses Workers and Durable Objects (paid plan).
+
+You will need a `DOMAIN` and a `CLOUDFLARE_API_TOKEN` repository secret created in the settings of the repo. They are used in the [Github Action](./.github/workflows/main.yml).
+
+### Manual deploy
+
+`npm run deploy`
+
+**Note**: You will need to create a real `wrangler.toml` file using [`wrangler-example.toml`](./wrangler-example.toml) as an example.
