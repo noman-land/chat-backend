@@ -25,7 +25,7 @@ interface Message {
 
 `npm start`
 
-Example local url: http://localhost:8787/chat/v1/rooms/123
+Example local url: [http://localhost:8787/chat/v1/rooms/123](http://localhost:8787/chat/v1/rooms/123)
 
 ## Deploying
 
