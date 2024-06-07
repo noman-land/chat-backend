@@ -1,10 +1,6 @@
-import { Hono } from 'hono/tiny';
+import { Hono } from 'hono';
 import { getChatroom } from './utils/getChatroom';
-import { Bindings } from './types';
-
-interface HonoTypes {
-  Bindings: Bindings;
-}
+import { HonoTypes, Message } from './types';
 
 export const app = new Hono<HonoTypes>({ strict: false })
   .basePath('/chat/v1')
@@ -15,7 +11,7 @@ export const app = new Hono<HonoTypes>({ strict: false })
   })
   .post('/rooms/:name', async (c) => {
     const chatroom = getChatroom(c);
-    const { author, message } = await c.req.json();
+    const { author, message } = await c.req.json<Message>();
     const { messages } = await chatroom.sendMessage({
       author,
       message,

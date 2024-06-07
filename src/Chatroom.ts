@@ -1,10 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-
-type Message = {
-  author: string;
-  message: string;
-  timestamp: number;
-};
+import { TimestampedMessage } from './types';
 
 export class Chatroom extends DurableObject {
   state: DurableObjectState;
@@ -17,12 +12,12 @@ export class Chatroom extends DurableObject {
   }
 
   async getMessages() {
-    const messages = (await this.state.storage.get<Message[]>('messages')) || [];
+    const messages = (await this.state.storage.get<TimestampedMessage[]>('messages')) || [];
     return { messages };
   }
 
-  async sendMessage(message: Message) {
-    const latestMessages = (await this.state.storage.get<Message[]>('messages')) || [];
+  async sendMessage(message: TimestampedMessage) {
+    const latestMessages = (await this.state.storage.get<TimestampedMessage[]>('messages')) || [];
     latestMessages.push(message);
     const messages = latestMessages.slice(-100);
     await this.state.storage.put('messages', messages);
