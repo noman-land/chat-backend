@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "wrangler dev --port 9997",
+    "start": "npm run dev",
     "tail": "wrangler tail",
     "cf-typegen": "wrangler types"
   },

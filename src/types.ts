@@ -2,6 +2,7 @@ import { Chatroom } from './Chatroom';
 
 export type Bindings = {
   CHATROOM: DurableObjectNamespace<Chatroom>;
+  PUBLIC_CHAT: KVNamespace;
 };
 
 export interface HonoTypes {

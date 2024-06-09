@@ -15,3 +15,7 @@ class_name = "Chatroom"
 [[migrations]]
 tag = "v1"
 new_classes = ["Chatroom"]
+
+[[kv_namespaces]]
+binding = "PUBLIC_CHAT"
+id = "b988eb0a62bc4b6386987f81b05d1026"
