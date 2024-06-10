@@ -31,7 +31,4 @@ export const app = new Hono<HonoTypes>({ strict: false })
       timestamp: new Date().getTime(),
     });
     return c.json({ messages });
-  })
-  .all('*', (c) => {
-    return c.text('Not Founde', 404);
   });
