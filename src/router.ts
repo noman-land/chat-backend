@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { getChatroom } from './utils/getChatroom';
+import { now } from './utils/now';
 import { HonoTypes, Message } from './types';
 
 export const app = new Hono<HonoTypes>({ strict: false })
@@ -11,7 +12,7 @@ export const app = new Hono<HonoTypes>({ strict: false })
       ...roomMembers,
       [userKey]: {
         name,
-        lastSeen: new Date().getTime(),
+        lastSeen: now(),
       },
     };
     await c.env.PUBLIC_CHAT.put(roomKey, JSON.stringify(updatedRoom));
