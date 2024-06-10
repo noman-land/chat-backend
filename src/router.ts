@@ -15,7 +15,7 @@ export const app = new Hono<HonoTypes>({ strict: false })
       },
     };
     await c.env.PUBLIC_CHAT.put(roomKey, JSON.stringify(updatedRoom));
-    return c.json(roomMembers);
+    return c.json(updatedRoom);
   })
   .get('/rooms/:name', async (c) => {
     const chatroom = getChatroom(c);
