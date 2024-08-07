@@ -8,7 +8,7 @@ import { getSignature } from './signing';
 export const app = new Hono<HonoTypes>({ strict: false })
   .basePath('/chat/v1')
   .use(async (c, next) => {
-    const timestamp = c.req.header('X-HubSpot-Request-Timestamp');
+    const timestampHeader = c.req.header('X-HubSpot-Request-Timestamp');
     const signatureV2Header = c.req.header('X-HubSpot-Signature');
     const signatureV3Header = c.req.header('X-HubSpot-Signature-V3');
 
@@ -17,50 +17,51 @@ export const app = new Hono<HonoTypes>({ strict: false })
       return c.body('Bad request. Signature headers missing.');
     }
 
-    if (!timestamp) {
+    if (!timestampHeader) {
       c.status(400);
       return c.body('Bad request. Timestamp header missing.');
     }
+
+    const timestamp = parseInt(timestampHeader, 10);
 
     if (isOlderThan5Minutes(timestamp)) {
       c.status(400);
       return c.body('Bad request. Timestamp is older than 5 minutes.');
     }
 
-    const requestBody = await c.req.text();
+    const body = await c.req.text();
+    const requestBody = body === undefined || body === null ? '' : body;
+
+    const options = {
+      method: c.req.method,
+      url: c.req.url,
+      requestBody,
+    };
 
     const signatureV2Prod = getSignature({
-      method: c.req.method,
+      ...options,
       signatureVersion: 'v2',
-      url: c.req.url,
       clientSecret: c.env.CLIENT_SECRET!,
-      requestBody,
     });
 
     const signatureV3Prod = getSignature({
-      method: c.req.method,
+      ...options,
       signatureVersion: 'v3',
-      url: c.req.url,
       clientSecret: c.env.CLIENT_SECRET!,
-      requestBody,
-      timestamp: timestamp ? parseInt(timestamp, 10) : 0,
+      timestamp,
     });
 
     const signatureV2Qa = getSignature({
-      method: c.req.method,
+      ...options,
       signatureVersion: 'v2',
-      url: c.req.url,
       clientSecret: c.env.CLIENT_SECRET_QA!,
-      requestBody,
     });
 
     const signatureV3Qa = getSignature({
-      method: c.req.method,
+      ...options,
       signatureVersion: 'v3',
-      url: c.req.url,
       clientSecret: c.env.CLIENT_SECRET_QA!,
-      requestBody,
-      timestamp: timestamp ? parseInt(timestamp, 10) : 0,
+      timestamp,
     });
 
     const validV2Signature = [signatureV2Prod, signatureV2Qa].some(
