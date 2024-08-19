@@ -8,15 +8,28 @@ import { getSignature } from './signing';
 export const app = new Hono<HonoTypes>({ strict: false })
   .basePath('/chat/v1')
   .use(async (c, next) => {
-    const timestampHeader = c.req.header('X-HubSpot-Request-Timestamp');
+    /***********************************************************
+     *                                                         *
+     *                    VERIFY SIGNATURES                    *
+     *                                                         *
+     ***********************************************************/
+
     const signatureV2Header = c.req.header('X-HubSpot-Signature');
     const signatureV3Header = c.req.header('X-HubSpot-Signature-V3');
 
+    /**
+     * If there are no signatures attached, it is not allowed
+     */
     if (!signatureV2Header || !signatureV3Header) {
       c.status(400);
       return c.body('Bad request. Signature headers missing.');
     }
 
+    const timestampHeader = c.req.header('X-HubSpot-Request-Timestamp');
+
+    /**
+     * [Only for v3] If there is no timestamp attached, it is not allowed
+     */
     if (!timestampHeader) {
       c.status(400);
       return c.body('Bad request. Timestamp header missing.');
@@ -24,11 +37,17 @@ export const app = new Hono<HonoTypes>({ strict: false })
 
     const timestamp = parseInt(timestampHeader, 10);
 
+    /**
+     * [Only for v3] If the timestamp is older than 5 minutes, it is not allowed
+     */
     if (isOlderThan5Minutes(timestamp)) {
       c.status(400);
       return c.body('Bad request. Timestamp is older than 5 minutes.');
     }
 
+    /**
+     * Stringify the request body
+     */
     const body = await c.req.text();
     const requestBody = body === undefined || body === null ? '' : body;
 
@@ -38,6 +57,9 @@ export const app = new Hono<HonoTypes>({ strict: false })
       requestBody,
     };
 
+    /**
+     * Generate signatures
+     */
     const signatureV2Prod = getSignature({
       ...options,
       signatureVersion: 'v2',
@@ -64,6 +86,9 @@ export const app = new Hono<HonoTypes>({ strict: false })
       timestamp,
     });
 
+    /**
+     * Match signatures against ones sent in headers
+     */
     const validV2Signature = [signatureV2Prod, signatureV2Qa].some(
       (signature) => signature === signatureV2Header
     );
@@ -72,10 +97,28 @@ export const app = new Hono<HonoTypes>({ strict: false })
       (signature) => signature === signatureV3Header
     );
 
+    const traceparent = c.req.header('Traceparent') || '';
+
+    console.log({
+      ...options,
+      timestamp,
+      signatureV2Header,
+      signatureV3Header,
+      validV2Signature,
+      validV3Signature,
+      traceparent,
+    });
+
+    /**
+     * Proceed only if signatures are valid
+     */
     if (validV2Signature && validV3Signature) {
       return next();
     }
 
+    /**
+     * Everything else is unauthorized
+     */
     c.status(401);
     return c.body('Not authorized. Signatures are not valid.');
   })
